@@ -1,0 +1,645 @@
+<!doctype html>
+<title>Simulado REST Client</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#eef1f4;
+    --paper:#ffffff;
+    --ink:#1b2430;
+    --ink-soft:#4a5568;
+    --ink-faint:#8794a3;
+    --rule:#d7dde3;
+    --accent:#2f5d74;
+    --accent-soft:#e4eef1;
+    --accent-ink:#1c3f50;
+    --correct:#1f6b45;
+    --correct-soft:#e6f2ec;
+    --wrong:#a8432f;
+    --wrong-soft:#f5e9e6;
+    --badge-ink:#ffffff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14181d;
+      --paper:#1b2129;
+      --ink:#e7ebf0;
+      --ink-soft:#aab4c0;
+      --ink-faint:#6f7986;
+      --rule:#323b46;
+      --accent:#6ea7bd;
+      --accent-soft:#22323a;
+      --accent-ink:#bfe0ec;
+      --correct:#7fc79e;
+      --correct-soft:#1c3327;
+      --wrong:#e2917f;
+      --wrong-soft:#3a2521;
+      --badge-ink:#14181d;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14181d;
+    --paper:#1b2129;
+    --ink:#e7ebf0;
+    --ink-soft:#aab4c0;
+    --ink-faint:#6f7986;
+    --rule:#323b46;
+    --accent:#6ea7bd;
+    --accent-soft:#22323a;
+    --accent-ink:#bfe0ec;
+    --correct:#7fc79e;
+    --correct-soft:#1c3327;
+    --wrong:#e2917f;
+    --wrong-soft:#3a2521;
+    --badge-ink:#14181d;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    padding:32px 16px 64px;
+    line-height:1.55;
+  }
+  .sheet{
+    max-width:780px;
+    margin:0 auto;
+    background:var(--paper);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    padding:44px clamp(20px,5vw,56px) 56px;
+  }
+  h1,h2,h3{
+    font-family:'Source Serif 4', Georgia, serif;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  code, .mono{
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+    font-size:0.92em;
+  }
+
+  /* ---- Header ---- */
+  .masthead{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:16px;
+    border-bottom:3px solid var(--accent);
+    padding-bottom:14px;
+    margin-bottom:6px;
+    flex-wrap:wrap;
+  }
+  .masthead .eyebrow{
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:600;
+  }
+  .masthead h1{
+    font-size:28px;
+    font-weight:700;
+    margin:4px 0 0;
+  }
+  .masthead .subtitle{
+    color:var(--ink-soft);
+    font-size:14.5px;
+    margin-top:4px;
+  }
+  .masthead .tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--accent-ink);
+    background:var(--accent-soft);
+    border:1px solid var(--rule);
+    padding:4px 10px;
+    border-radius:4px;
+    white-space:nowrap;
+  }
+
+  .id-fields{
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr;
+    gap:18px 24px;
+    margin:22px 0 28px;
+  }
+  .id-fields div{
+    border-bottom:1px solid var(--ink-faint);
+    padding-bottom:5px;
+  }
+  .id-fields label{
+    display:block;
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-bottom:14px;
+  }
+
+  .instructions{
+    background:var(--accent-soft);
+    border:1px solid var(--rule);
+    border-radius:4px;
+    padding:14px 18px;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin-bottom:34px;
+  }
+  .instructions strong{color:var(--ink);}
+
+  .toc-source{
+    font-size:12.5px;
+    color:var(--ink-faint);
+    margin:-22px 0 30px;
+  }
+  .toc-source a{color:var(--accent-ink);}
+
+  /* ---- Questions ---- */
+  .question{
+    break-inside:avoid;
+    page-break-inside:avoid;
+    margin-bottom:30px;
+  }
+  .q-head{
+    display:flex;
+    gap:12px;
+    align-items:baseline;
+    margin-bottom:9px;
+  }
+  .q-num{
+    font-family:'Source Serif 4',serif;
+    font-weight:700;
+    font-size:18px;
+    color:var(--accent);
+    min-width:26px;
+  }
+  .q-text{font-size:15.5px; color:var(--ink);}
+  .q-topic{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:.03em;
+    color:var(--accent-ink);
+    background:var(--accent-soft);
+    border-radius:3px;
+    padding:2px 6px;
+    margin-left:8px;
+    vertical-align:middle;
+  }
+  .snippet{
+    background:var(--accent-soft);
+    border:1px solid var(--rule);
+    border-radius:4px;
+    padding:10px 14px;
+    margin:8px 0 12px 38px;
+    font-size:12.5px;
+    overflow-x:auto;
+    color:var(--ink);
+  }
+  .options{
+    list-style:none;
+    margin:0 0 0 38px;
+    padding:0;
+    display:grid;
+    gap:7px;
+  }
+  .options li{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    font-size:14.5px;
+  }
+  .opt-letter{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    border:1px solid var(--rule);
+    border-radius:50%;
+    width:20px;height:20px;
+    display:flex;align-items:center;justify-content:center;
+    flex:none;
+    margin-top:1px;
+  }
+
+  /* ---- Section breaks ---- */
+  .section-title{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin:8px 0 26px;
+  }
+  .section-title h2{
+    font-size:20px;
+    white-space:nowrap;
+    margin:0;
+  }
+  .section-title .line{height:1px;background:var(--rule);flex:1;}
+  .answers-page{
+    break-before:page;
+    page-break-before:always;
+    padding-top:8px;
+  }
+
+  /* ---- Answer key ---- */
+  .akey{
+    break-inside:avoid;
+    page-break-inside:avoid;
+    border:1px solid var(--rule);
+    border-radius:6px;
+    margin-bottom:22px;
+    overflow:hidden;
+  }
+  .akey-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--accent-soft);
+    padding:10px 16px;
+    border-bottom:1px solid var(--rule);
+  }
+  .akey-head .q-num{min-width:auto;}
+  .akey-head .correct-badge{
+    margin-left:auto;
+    background:var(--correct);
+    color:var(--badge-ink);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    font-weight:600;
+    padding:3px 10px;
+    border-radius:4px;
+  }
+  .akey-body{padding:12px 16px 14px;}
+  .alt{
+    display:grid;
+    grid-template-columns:22px 1fr;
+    gap:10px;
+    padding:7px 0;
+    border-top:1px dashed var(--rule);
+    font-size:13.5px;
+  }
+  .alt:first-child{border-top:none;}
+  .alt .mark{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:700;
+    font-size:12px;
+    width:20px;height:20px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .alt.right .mark{background:var(--correct-soft);color:var(--correct);border:1px solid var(--correct);}
+  .alt.wrong .mark{background:var(--wrong-soft);color:var(--wrong);border:1px solid var(--wrong);}
+  .alt .expl-label{font-weight:600;color:var(--ink);}
+  .alt.right .expl-label{color:var(--correct);}
+  .alt.wrong .expl-label{color:var(--wrong);}
+  .alt p{margin:2px 0 0; color:var(--ink-soft);}
+
+  footer{
+    text-align:center;
+    color:var(--ink-faint);
+    font-size:11.5px;
+    margin-top:40px;
+  }
+
+  @media print{
+    body{background:#fff; padding:0;}
+    .sheet{border:none; border-radius:0; max-width:none; padding:0 6mm;}
+    .instructions, .snippet, .akey-head{background:#f2f2f2 !important;}
+    .q-topic, .akey-head .correct-badge{background:#e6e6e6 !important; color:#111 !important;}
+    a{color:inherit; text-decoration:none;}
+    @page{margin:16mm 14mm;}
+  }
+  @media (max-width:520px){
+    .id-fields{grid-template-columns:1fr;}
+    .snippet, .options{margin-left:0;}
+  }
+</style>
+
+<div class="sheet">
+
+  <div class="masthead">
+    <div>
+      <div class="eyebrow">Programação para Web II — PW2</div>
+      <h1>Simulado — Web Services &amp; REST Client</h1>
+      <div class="subtitle">JAX-RS, records como modelo, MicroProfile REST Client</div>
+    </div>
+    <div class="tag">12 questões · múltipla escolha</div>
+  </div>
+
+  <div class="id-fields">
+    <div><label>Nome</label></div>
+    <div><label>Turma</label></div>
+    <div><label>Data</label></div>
+  </div>
+
+  <div class="instructions">
+    <strong>Instruções:</strong> cada questão tem uma única alternativa correta. As questões são baseadas
+    no projeto <code>BibliotecaRestClient</code> (módulos <code>catalog</code> e <code>loans</code>).
+    O gabarito comentado, com a justificativa de cada alternativa, está nas páginas finais.
+  </div>
+
+  <div class="toc-source">
+    Base: <span class="mono">catalog/CatalogResource.java</span>,
+    <span class="mono">loans/LoanResource.java</span>,
+    <span class="mono">loans/client/IBookCatalog.java</span> —
+    conteúdo de referência: pw2.rpmhub.dev (Web Services e Rest Client)
+  </div>
+
+  <!-- ===================== QUESTÕES ===================== -->
+
+  <div class="question">
+    <div class="q-head">
+      <span class="q-num">1</span>
+      <span class="q-text">Qual o papel da anotação <code>@Path("/books")</code> na classe <code>CatalogResource</code>?<span class="q-topic">JAX-RS</span></span>
+    </div>
+    <ul class="options">
+      <li><span class="opt-letter">A</span> Define a URI base sob a qual os métodos do recurso ficam expostos.</li>
+      <li><span class="opt-letter">B</span> Define o verbo HTTP aceito pelo recurso.</li>
+      <li><span class="opt-letter">C</span> Registra um cliente REST para consumir outro serviço.</li>
+      <li><span class="opt-letter">D</span> Define o formato de serialização (JSON/XML) das respostas.</li>
+    </ul>
+  </div>
+
+  <div class="question">
+    <div class="q-head">
+      <span class="q-num">2</span>
+      <span class="q-text">Por que <code>Book</code> foi implementado como <em>record</em> em vez de uma classe tradicional?<span class="q-topic">Modelo</span></span>
+    </div>
+    <div class="snippet">public record Book(Long id, String title, String author, boolean loaned) { }</div>
+    <ul class="options">
+      <li><span class="opt-letter">A</span> Records geram automaticamente construtor, getters, <code>equals/hashCode</code> e <code>toString</code>, reduzindo código repetitivo.</li>
+      <li><span class="opt-letter">B</span> Records permitem herança múltipla de outras classes.</li>
+      <li><span class="opt-letter">C</span> Records são obrigatórios em qualquer classe anotada com <code>@Path</code>.</li>
+      <li><span class="opt-letter">D</span> Records substituem a necessidade das anotações do JAX-RS.</li>
+    </ul>
+  </div>
+
+  <div class="question">
+    <div class="q-head">
+      <span class="q-num">3</span>
+      <span class="q-text">No método <code>loanBook</code>, qual código HTTP é devolvido quando <code>book.loaned()</code> já é <code>true</code>?<span class="q-topic">Response</span></span>
+    </div>
+    <div class="snippet">if (book.loaned()) {
+    return Response.status(Response.Status.CONFLICT).build();
+}</div>
+    <ul class="options">
+      <li><span class="opt-letter">A</span> 200 OK</li>
+      <li><span class="opt-letter">B</span> 404 NOT FOUND</li>
+      <li><span class="opt-letter">C</span> 409 CONFLICT</li>
+      <li><span class="opt-letter">D</span> 400 BAD REQUEST</li>
+    </ul>
+  </div>
+
+  <div class="question">
+    <div class="q-head">
+      <span class="q-num">4</span>
+      <span class="q-text">Qual é a finalidade da interface <code>IBookCatalog</code>, anotada com <code>@RegisterRestClient</code>?<span class="q-topic">Rest Client</span></span>
+    </div>
+    <ul class="options">
+      <li><span class="opt-letter">A</span> Definir um cliente REST tipado, implementado automaticamente pelo Quarkus, para consumir o serviço <code>catalog</code>.</li>
+      <li><span class="opt-letter">B</span> Implementar o servidor do microsserviço <code>catalog</code>.</li>
+      <li><span class="opt-letter">C</span> Serializar objetos <code>Book</code> em XML.</li>
+      <li><span class="opt-letter">D</span> Registrar as rotas JAX-RS do próprio serviço <code>loans</code>.</li>
+    </ul>
+  </div>
+
+  <div class="question">
+    <div class="q-head">
+      <span class="q-num">5</span>
+      <span class="q-text">Como o cliente REST é injetado em <code>LoanResource</code>?<span class="q-topic">CDI</span></span>
+    </div>
+    <ul class="options">
+      <li><span class="opt-letter">A</span> <code>IBookCatalog bookCatalog = new IBookCatalog();</code></li>
+      <li><span class="opt-letter">B</span> <code>@Inject @RestClient IBookCatalog bookCatalog;</code></li>
+      <li><span class="opt-letter">C</span> <code>@Autowired IBookCatalog bookCatalog;</code></li>
+      <li><span class="opt-letter">D</span> <code>@Produces IBookCatalog bookCatalog;</code></li>
+    </ul>
+  </div>
+
+  <div class="question">
+    <div class="q-head">
+      <span class="q-num">6</span>
+      <span class="q-text">O código atual fixa a URL do cliente diretamente na anotação: <code>@RegisterRestClient(baseUri = "http://localhost:9080/books")</code>. Segundo o material de referência da disciplina, qual seria a prática recomendada?<span class="q-topic">Configuration</span></span>
+    </div>
+    <ul class="options">
+      <li><span class="opt-letter">A</span> Manter fixo no código-fonte, pois facilita os testes automatizados.</li>
+      <li><span class="opt-letter">B</span> Configurar a URL em <code>application.properties</code>, usando a chave <code>{pacote.Classe}/mp-rest/url</code>.</li>
+      <li><span class="opt-letter">C</span> Definir a URL exclusivamente por variável de ambiente no Dockerfile.</li>
+      <li><span class="opt-letter">D</span> Usar sempre <code>localhost</code>, independente do ambiente de execução.</li>
+    </ul>
+  </div>
+
+  <div class="question">
+    <div class="q-head">
+      <span class="q-num">7</span>
+      <span class="q-text">O que acontece em <code>newLoan</code> quando <code>bookCatalog.getBook(id)</code> lança <code>WebApplicationException</code> (livro inexistente)?<span class="q-topic">Tratamento de erro</span></span>
+    </div>
+    <div class="snippet">try {
+    book = bookCatalog.getBook(request.bookId());
+} catch (WebApplicationException e) {
+    return Response.status(Response.Status.NOT_FOUND).build();
+}</div>
+    <ul class="options">
+      <li><span class="opt-letter">A</span> A exceção propaga sem tratamento e interrompe a aplicação.</li>
+      <li><span class="opt-letter">B</span> É capturada e a API de <code>loans</code> responde 404 NOT FOUND.</li>
+      <li><span class="opt-letter">C</span> É capturada e a API responde 500 INTERNAL SERVER ERROR.</li>
+      <li><span class="opt-letter">D</span> É ignorada e o empréstimo é criado mesmo assim.</li>
+    </ul>
+  </div>
+
+  <div class="question">
+    <div class="q-head">
+      <span class="q-num">8</span>
+      <span class="q-text">Qual anotação de verbo HTTP é usada tanto em <code>CatalogResource</code> quanto em <code>IBookCatalog</code> para marcar um livro como emprestado?<span class="q-topic">JAX-RS</span></span>
+    </div>
+    <ul class="options">
+      <li><span class="opt-letter">A</span> <code>@POST</code></li>
+      <li><span class="opt-letter">B</span> <code>@PATCH</code></li>
+      <li><span class="opt-letter">C</span> <code>@PUT</code></li>
+      <li><span class="opt-letter">D</span> <code>@DELETE</code></li>
+    </ul>
+  </div>
+
+  <div class="question">
+    <div class="q-head">
+      <span class="q-num">9</span>
+      <span class="q-text">Por que <code>listBooks()</code> retorna <code>List&lt;Book&gt;</code> diretamente, e não um <code>Response</code>, ao contrário de <code>getBook(id)</code>?<span class="q-topic">Response</span></span>
+    </div>
+    <ul class="options">
+      <li><span class="opt-letter">A</span> JAX-RS permite retornar o próprio tipo do corpo quando não é preciso customizar o código de status; o padrão é 200 OK.</li>
+      <li><span class="opt-letter">B</span> É um erro de implementação: todo método deveria retornar <code>Response</code>.</li>
+      <li><span class="opt-letter">C</span> Porque <code>List</code> não pode ser serializado para JSON.</li>
+      <li><span class="opt-letter">D</span> Porque métodos anotados com <code>@GET</code> não podem retornar <code>Response</code>.</li>
+    </ul>
+  </div>
+
+  <div class="question">
+    <div class="q-head">
+      <span class="q-num">10</span>
+      <span class="q-text">O que representa o campo <code>AtomicLong idGenerator</code>, presente em <code>CatalogResource</code> e <code>LoanResource</code>?<span class="q-topic">Implementação</span></span>
+    </div>
+    <ul class="options">
+      <li><span class="opt-letter">A</span> Um identificador de sessão HTTP do cliente.</li>
+      <li><span class="opt-letter">B</span> Um gerador thread-safe de IDs sequenciais, simulando uma chave primária em memória.</li>
+      <li><span class="opt-letter">C</span> Um contador de requisições para fins de métricas.</li>
+      <li><span class="opt-letter">D</span> Um timestamp de criação do recurso.</li>
+    </ul>
+  </div>
+
+  <div class="question">
+    <div class="q-head">
+      <span class="q-num">11</span>
+      <span class="q-text"><code>catalog/application.properties</code> define <code>quarkus.http.port=9080</code> e <code>loans/application.properties</code> define <code>quarkus.http.port=9081</code>. Qual a razão prática dessa configuração?<span class="q-topic">Microsserviços</span></span>
+    </div>
+    <ul class="options">
+      <li><span class="opt-letter">A</span> Não tem efeito prático: o Quarkus sempre expõe a aplicação na porta 8080.</li>
+      <li><span class="opt-letter">B</span> Permitir que os dois microsserviços rodem simultaneamente na mesma máquina, sem conflito de porta.</li>
+      <li><span class="opt-letter">C</span> Definir a porta de conexão com o banco de dados.</li>
+      <li><span class="opt-letter">D</span> Configurar a porta usada para HTTPS.</li>
+    </ul>
+  </div>
+
+  <div class="question">
+    <div class="q-head">
+      <span class="q-num">12</span>
+      <span class="q-text">Se o serviço <code>catalog</code> estiver fora do ar e <code>loans</code> chamar <code>bookCatalog.listBooks()</code>, qual o comportamento esperado — considerando apenas os recursos vistos até este módulo (sem Fault Tolerance)?<span class="q-topic">Rest Client</span></span>
+    </div>
+    <ul class="options">
+      <li><span class="opt-letter">A</span> O Quarkus retorna automaticamente uma lista vazia.</li>
+      <li><span class="opt-letter">B</span> A chamada falha e uma exceção é propagada, pois não há tratamento de tolerância a falhas implementado.</li>
+      <li><span class="opt-letter">C</span> O REST Client usa, por padrão, um cache da última resposta bem-sucedida.</li>
+      <li><span class="opt-letter">D</span> A aplicação <code>loans</code> é reiniciada automaticamente pelo Quarkus.</li>
+    </ul>
+  </div>
+
+  <!-- ===================== GABARITO ===================== -->
+
+  <div class="answers-page">
+    <div class="section-title"><h2>Gabarito comentado</h2><span class="line"></span></div>
+
+    <div class="akey">
+      <div class="akey-head"><span class="q-num">1</span><span>@Path define a URI base do recurso</span><span class="correct-badge">A</span></div>
+      <div class="akey-body">
+        <div class="alt right"><span class="mark">✓</span><div><span class="expl-label">A —</span><p>Correta. <code>@Path</code> no nível da classe mapeia o recurso a um segmento de URI (aqui, <code>/books</code>); os métodos combinam esse caminho com o seu próprio <code>@Path</code>, se houver.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">B —</span><p>O verbo HTTP é definido por anotações próprias (<code>@GET</code>, <code>@POST</code>, <code>@PUT</code>...), não por <code>@Path</code>.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">C —</span><p>Registrar um cliente REST é papel de <code>@RegisterRestClient</code>, usado do lado de quem consome, não de quem expõe o recurso.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">D —</span><p>O formato de serialização é controlado por <code>@Produces</code>/<code>@Consumes</code>, não por <code>@Path</code>.</p></div></div>
+      </div>
+    </div>
+
+    <div class="akey">
+      <div class="akey-head"><span class="q-num">2</span><span>Records como modelo</span><span class="correct-badge">A</span></div>
+      <div class="akey-body">
+        <div class="alt right"><span class="mark">✓</span><div><span class="expl-label">A —</span><p>Correta. Records existem justamente para modelar dados imutáveis com menos código: o compilador gera construtor canônico, acessores (<code>id()</code>, <code>title()</code>...), <code>equals</code>, <code>hashCode</code> e <code>toString</code>.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">B —</span><p>Records não suportam herança de outras classes (só podem implementar interfaces); o contrário do que a alternativa afirma.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">C —</span><p>Não existe essa exigência; um recurso <code>@Path</code> pode usar qualquer POJO como modelo, record ou não.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">D —</span><p>Records descrevem dados; as anotações JAX-RS continuam necessárias para expor endpoints.</p></div></div>
+      </div>
+    </div>
+
+    <div class="akey">
+      <div class="akey-head"><span class="q-num">3</span><span>Código HTTP para conflito de estado</span><span class="correct-badge">C</span></div>
+      <div class="akey-body">
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">A —</span><p>200 indicaria sucesso na operação de empréstimo, o que não ocorre quando o livro já está emprestado.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">B —</span><p>404 é usado quando o livro <em>não existe</em> (<code>book == null</code>), caso diferente e tratado antes no mesmo método.</p></div></div>
+        <div class="alt right"><span class="mark">✓</span><div><span class="expl-label">C —</span><p>Correta. O livro existe, mas o estado atual do recurso conflita com a operação solicitada — esse é exatamente o uso semântico de 409 CONFLICT.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">D —</span><p>400 indicaria uma requisição malformada; aqui a requisição é válida, apenas o estado do recurso impede a ação.</p></div></div>
+      </div>
+    </div>
+
+    <div class="akey">
+      <div class="akey-head"><span class="q-num">4</span><span>@RegisterRestClient</span><span class="correct-badge">A</span></div>
+      <div class="akey-body">
+        <div class="alt right"><span class="mark">✓</span><div><span class="expl-label">A —</span><p>Correta. O MicroProfile REST Client gera em tempo de execução uma implementação de <code>IBookCatalog</code> que traduz as chamadas de método em requisições HTTP para o serviço <code>catalog</code>.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">B —</span><p>Quem implementa o servidor do <code>catalog</code> é <code>CatalogResource</code>, em outro módulo; <code>IBookCatalog</code> vive em <code>loans</code> e é só o contrato do cliente.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">C —</span><p>Os métodos declaram <code>@Produces(MediaType.APPLICATION_JSON)</code>; não há serialização XML envolvida.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">D —</span><p><code>IBookCatalog</code> não expõe rotas — ela consome rotas de outro serviço.</p></div></div>
+      </div>
+    </div>
+
+    <div class="akey">
+      <div class="akey-head"><span class="q-num">5</span><span>Injeção do cliente REST</span><span class="correct-badge">B</span></div>
+      <div class="akey-body">
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">A —</span><p><code>IBookCatalog</code> é uma interface; não é instanciada com <code>new</code>, e sim provida pelo container CDI.</p></div></div>
+        <div class="alt right"><span class="mark">✓</span><div><span class="expl-label">B —</span><p>Correta. A combinação <code>@Inject</code> (CDI) com <code>@RestClient</code> (MicroProfile) instrui o Quarkus a injetar a implementação gerada do cliente REST.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">C —</span><p><code>@Autowired</code> é uma anotação do Spring, não usada em projetos Quarkus/Jakarta EE.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">D —</span><p><code>@Produces</code> serve para expor um bean via método produtor, não para injetar um campo.</p></div></div>
+      </div>
+    </div>
+
+    <div class="akey">
+      <div class="akey-head"><span class="q-num">6</span><span>baseUri: anotação x application.properties</span><span class="correct-badge">B</span></div>
+      <div class="akey-body">
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">A —</span><p>Fixar a URL no código não facilita testes — pelo contrário, impede trocar o endereço entre ambientes (dev, teste, produção) sem recompilar.</p></div></div>
+        <div class="alt right"><span class="mark">✓</span><div><span class="expl-label">B —</span><p>Correta. O material da disciplina recomenda configurar a URL do cliente via <code>application.properties</code>, com a chave <code>{pacote.Classe}/mp-rest/url</code> — por exemplo, <code>edu.ifrs.client.IBookCatalog/mp-rest/url=http://localhost:9080/books</code>. O <code>baseUri</code> fixo na anotação funciona, mas é a exceção, não o padrão ensinado.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">C —</span><p>Variáveis de ambiente são uma opção válida em produção, mas não é o mecanismo apresentado no material do curso para este ponto.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">D —</span><p>Usar sempre <code>localhost</code> quebraria a comunicação entre serviços implantados em máquinas ou contêineres diferentes.</p></div></div>
+      </div>
+    </div>
+
+    <div class="akey">
+      <div class="akey-head"><span class="q-num">7</span><span>Tratamento de WebApplicationException</span><span class="correct-badge">B</span></div>
+      <div class="akey-body">
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">A —</span><p>O bloco <code>try/catch</code> captura exatamente essa exceção; ela não propaga sem tratamento.</p></div></div>
+        <div class="alt right"><span class="mark">✓</span><div><span class="expl-label">B —</span><p>Correta. O <code>catch</code> intercepta a falha (o cliente REST lança <code>WebApplicationException</code> quando recebe 404 do <code>catalog</code>) e converte a resposta de <code>loans</code> em 404 NOT FOUND.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">C —</span><p>O código devolve explicitamente <code>Status.NOT_FOUND</code>, não 500.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">D —</span><p>A exceção não é ignorada: o método retorna imediatamente uma resposta de erro, interrompendo o fluxo de criação do empréstimo.</p></div></div>
+      </div>
+    </div>
+
+    <div class="akey">
+      <div class="akey-head"><span class="q-num">8</span><span>Verbo HTTP para marcar empréstimo</span><span class="correct-badge">C</span></div>
+      <div class="akey-body">
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">A —</span><p><code>@POST</code> é usado para criar recursos novos (como um livro ou um empréstimo), não para atualizar o estado de um existente.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">B —</span><p><code>@PATCH</code> não é usado em nenhum lugar deste projeto.</p></div></div>
+        <div class="alt right"><span class="mark">✓</span><div><span class="expl-label">C —</span><p>Correta. Tanto <code>CatalogResource.loanBook</code> (<code>@PUT @Path("/{id}/loan")</code>) quanto <code>IBookCatalog.markAsLoaned</code> usam <code>@PUT</code>, consistente com a ideia de atualizar o estado de um recurso existente.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">D —</span><p><code>@DELETE</code> removeria o recurso; marcar como emprestado é uma atualização, não uma remoção.</p></div></div>
+      </div>
+    </div>
+
+    <div class="akey">
+      <div class="akey-head"><span class="q-num">9</span><span>Retorno direto do tipo x Response</span><span class="correct-badge">A</span></div>
+      <div class="akey-body">
+        <div class="alt right"><span class="mark">✓</span><div><span class="expl-label">A —</span><p>Correta. JAX-RS aceita que o método retorne diretamente a entidade; nesse caso o runtime monta a resposta com status 200 OK. <code>Response</code> só é necessário quando o método precisa escolher o status dinamicamente, como em <code>getBook</code> (200 ou 404).</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">B —</span><p>Não é um erro: é uma forma válida e comum do JAX-RS, usada quando não há necessidade de variar o status HTTP.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">C —</span><p><code>List</code> é serializável para JSON normalmente pelo provider JSON do Quarkus, desde que os elementos também sejam serializáveis (como o record <code>Book</code>).</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">D —</span><p><code>@GET</code> permite retornar <code>Response</code> normalmente — é exatamente o que <code>getBook(id)</code> faz.</p></div></div>
+      </div>
+    </div>
+
+    <div class="akey">
+      <div class="akey-head"><span class="q-num">10</span><span>AtomicLong idGenerator</span><span class="correct-badge">B</span></div>
+      <div class="akey-body">
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">A —</span><p>Sessão HTTP é um conceito à parte; o campo não tem relação com identificação de sessão de cliente.</p></div></div>
+        <div class="alt right"><span class="mark">✓</span><div><span class="expl-label">B —</span><p>Correta. Como os dados ficam em um <code>ConcurrentHashMap</code> em memória (sem banco de dados), o <code>AtomicLong</code> gera IDs únicos e crescentes de forma segura mesmo sob acesso concorrente, simulando uma chave primária autoincremento.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">C —</span><p>Não há nenhuma integração com métricas (isso seria tema do módulo de Metrics, não implementado aqui).</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">D —</span><p>O valor é um contador incremental (<code>getAndIncrement()</code>), não um timestamp.</p></div></div>
+      </div>
+    </div>
+
+    <div class="akey">
+      <div class="akey-head"><span class="q-num">11</span><span>Portas distintas por serviço</span><span class="correct-badge">B</span></div>
+      <div class="akey-body">
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">A —</span><p>A propriedade <code>quarkus.http.port</code> tem efeito direto: sobrescreve a porta padrão (8080) da aplicação Quarkus.</p></div></div>
+        <div class="alt right"><span class="mark">✓</span><div><span class="expl-label">B —</span><p>Correta. Em uma arquitetura de microsserviços, cada serviço roda como um processo HTTP independente; portas distintas (9080 e 9081) evitam que um processo tente ocupar a porta já usada pelo outro na mesma máquina.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">C —</span><p>Não há banco de dados configurado neste projeto; os dados ficam em memória.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">D —</span><p>Não há configuração de HTTPS/TLS nas propriedades mostradas.</p></div></div>
+      </div>
+    </div>
+
+    <div class="akey">
+      <div class="akey-head"><span class="q-num">12</span><span>Serviço remoto indisponível</span><span class="correct-badge">B</span></div>
+      <div class="akey-body">
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">A —</span><p>Esse comportamento de fallback só existiria com Fault Tolerance (<code>@Fallback</code>), tema de um módulo posterior — não implementado neste projeto.</p></div></div>
+        <div class="alt right"><span class="mark">✓</span><div><span class="expl-label">B —</span><p>Correta. Sem tratamento de resiliência, uma falha de conexão do REST Client (serviço fora do ar) resulta em exceção propagada, refletindo em erro na chamada de <code>loans</code>.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">C —</span><p>O MicroProfile REST Client básico não faz cache automático de respostas.</p></div></div>
+        <div class="alt wrong"><span class="mark">✕</span><div><span class="expl-label">D —</span><p>Uma falha de chamada remota não reinicia a aplicação chamadora.</p></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>BibliotecaRestClient — Simulado gerado para estudo · PW2 · pw2.rpmhub.dev</footer>
+</div>
